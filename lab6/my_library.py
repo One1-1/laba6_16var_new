@@ -1,53 +1,84 @@
-def prisv(f, g):
-    try:
-        # Открываем файл g для чтения
-        file_g = open(g, 'r')
-        numbers = []
+'''
+-----------Functions-----------
+task6_1(file_path)
+    Дан файл f, содержащий сведения о веществах: указывается название вещества, его
+    удельный вес и проводимость (проводник, полупроводник, изолятор). Найти удельные
+    веса и названия всех полупроводников. Предусмотреть обработку всех возможных
+    исключительных ситуаций.
 
-        # Читаем все строки и преобразуем их в список целых чисел
-        for line in file_g:
-            numbers.append(int(line.strip()))
+task6_2(input_file, output_file)
+    Дан текстовый файл f. Создать новый файл g и записать в него построчно все слова
+    файла f нечетной длины, предварительно перенеся последнюю букву слова в начало.
+    Предусмотреть обработку всех возможных исключительных ситуаций
+-------------------------------
+'''
 
-        file_g.close()
 
-        # Проверяем, что в списке достаточно элементов
-        if len(numbers) < 3:
-            raise ValueError("В файле g должно быть как минимум 3 числа для исключения максимального и минимального.")
+def task6_1(file_path):
+    '''
+    Дан файл f, содержащий сведения о веществах: указывается название вещества, его
+    удельный вес и проводимость (проводник, полупроводник, изолятор). Найти удельные
+    веса и названия всех полупроводников. Предусмотреть обработку всех возможных
+    исключительных ситуаций.
 
-        # Находим максимальный и минимальный элементы
-        max_num = max(numbers)
-        min_num = min(numbers)
+    :param file_path: путь к файлу
+    :return: None
+    '''
+    def read_materials(file_path):
+        materials = []
+        try:
+            with open(file_path, 'r', encoding='utf-8') as file:
+                for line in file:
+                    # Предполагаем, что данные в файле разделены запятыми
+                    parts = line.strip().split(',')
+                    if len(parts) != 3:
+                        print(f"Неверный формат строки: {line.strip()}")
+                        continue
+                    name, density, conductivity = parts
+                    try:
+                        density = float(density)
+                        materials.append((name.strip(), density, conductivity.strip()))
+                    except ValueError:
+                        print(f"Неверное значение плотности для вещества: {name.strip()}")
+        except FileNotFoundError:
+            print(f"Файл {file_path} не найден.")
+        except Exception as e:
+            print(f"Произошла ошибка: {e}")
+        return materials
 
-        # Создаем новый список для отфильтрованных чисел
-        filtered_numbers = []
-        for num in numbers:
-            if num != max_num and num != min_num: # исключаем максимальный и минимальный элемент
-                filtered_numbers.append(num)
+    def find_semiconductors(materials):
+        semiconductors = []
+        for name, density, conductivity in materials:
+            if conductivity.lower() == 'полупроводник':
+                semiconductors.append((name, density))
+        return semiconductors
 
-        # Открываем файл f для записи
-        file_f = open(f, 'w')
+    materials = read_materials(file_path)
+    semiconductors = find_semiconductors(materials)
 
-        # Записываем отфильтрованные числа в файл f
-        for number in filtered_numbers:
-            file_f.write(f"{number}\n")
-
-        file_f.close()
-
-    # обработка ошибок
-    except FileNotFoundError:
-        print(f"Ошибка: Файл {g} не найден.")
-    except ValueError as ve:
-        print(f"Ошибка: {ve}")
-    except Exception as e:
-        print(f"Произошла ошибка: {e}")
+    if semiconductors:
+        print("Полупроводники:")
+        for name, density in semiconductors:
+            print(f"Название: {name}, Удельный вес: {density}")
+    else:
+        print("Полупроводники не найдены.")
 
 
 
 
 def task6_2(input_file, output_file):
+    '''
+    Дан текстовый файл f. Создать новый файл g и записать в него построчно все слова
+    файла f нечетной длины, предварительно перенеся последнюю букву слова в начало.
+    Предусмотреть обработку всех возможных исключительных ситуаций
+
+    :param input_file: путь к исходному файлу
+    :param output_file: путь, где создать файл g
+    :return: None
+    '''
     try:
-        with open(input_file, 'r', encoding='utf-8') as file:
-            text = file.read()
+        with open(input_file, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
     except FileNotFoundError:
         print(f"Ошибка: Файл '{input_file}' не найден.")
         return
@@ -55,45 +86,26 @@ def task6_2(input_file, output_file):
         print(f"Ошибка при чтении файла: {e}")
         return
 
-    # Переменная для хранения отформатированного текста
-    formatted_lines = []
-    current_line = ""
+    processed_words = []
 
-    # Разбиваем текст на слова
-    words = text.split()
+    for line in lines:
+        words = line.split()
+        for word in words:
+            if len(word) % 2 != 0:  # Проверка на нечетную длину
+                # Перемещение последней буквы в начало
+                new_word = word[-1] + word[:-1]
+                processed_words.append(new_word)
 
-    for word in words:
-        # Проверяем, если добавление слова не превышает 60 символов
-        if len(current_line) + len(word) + 1 <= 60:
-            if current_line:  # Если текущая строка не пустая, добавляем пробел
-                current_line += " "
-            current_line += word
-        else:
-            # Если текущая строка заканчивается на точку, добавляем её в список
-            if current_line.endswith('.'):
-                formatted_lines.append(current_line)
-                current_line = word  # Начинаем новую строку с текущего слова
-            else:
-                # Если текущая строка не заканчивается на точку, добавляем её в список
-                formatted_lines.append(current_line)
-                current_line = word  # Начинаем новую строку с текущего слова
-
-        # Если текущая строка достигла 60 символов, добавляем её в список
-        if len(current_line) == 60:
-            formatted_lines.append(current_line)
-            current_line = ""
-
-    # Добавляем последнюю строку, если она не пустая
-    if current_line:
-        formatted_lines.append(current_line)
-
-    # Записываем отформатированный текст в выходной файл
     try:
-        with open(output_file, 'w', encoding='utf-8') as file:
-            for line in formatted_lines:
-                file.write(line + '\n')
+        with open(output_file, 'w', encoding='utf-8') as g:
+            for word in processed_words:
+                g.write(word + '\n')
     except Exception as e:
         print(f"Ошибка при записи в файл: {e}")
+
+
+
+
 
 
 

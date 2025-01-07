@@ -1,4 +1,3 @@
-
 """
 Главный модуль программы
 Осуществляет выполнение выбранной из меню задачи, посредством вызова
@@ -7,7 +6,7 @@
 """
 
 
-from lab6.my_library import prisv, task6_2
+from lab6.my_library import task6_1, task6_2
 
 
 def menu():
@@ -30,12 +29,12 @@ if __name__ == '__main__':
         match choice:
 
             case 1:
-                prisv('file_f', 'lab6\\file_g')
+                file_path = 'lab6\\f.txt'
+                task6_1(file_path)
 
             case 2:
-
-                input_file = 'lab6\\Book'
-                output_file = 'Formatted_Book'
+                input_file = 'lab6\\f2.txt'
+                output_file = 'lab6\\g2.txt'
                 task6_2(input_file, output_file)
 
             case _:
